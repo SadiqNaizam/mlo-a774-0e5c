@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
 
+// MSAL Imports
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
+import { loginRequest } from '@/authConfig';
+
 const Header: React.FC = () => {
   console.log('Header loaded');
-  // In a real app, you would get this from an AuthContext or a global state manager.
-  // This is for demonstration purposes only.
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const navigate = useNavigate();
+  const { instance } = useMsal();
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    // In a real app, you would also clear tokens and redirect.
-    navigate('/');
+  const handleLogin = () => {
+    instance.loginRedirect(loginRequest).catch(e => {
+      console.error(e);
+    });
   };
   
-  // This is a mock login for demonstration purposes to see the authenticated state.
-  const handleMockLogin = () => {
-    setIsAuthenticated(true);
-    navigate('/dashboard');
-  }
+  const handleLogout = () => {
+    instance.logoutRedirect({
+      postLogoutRedirectUri: "/",
+    });
+  };
 
   const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -38,7 +39,7 @@ const Header: React.FC = () => {
         </Link>
         
         <nav className="flex items-center gap-2">
-          {isAuthenticated ? (
+          <AuthenticatedTemplate>
             <>
               <NavLink to="/dashboard" className={navLinkClasses}>
                 <LayoutDashboard className="h-4 w-4" />
@@ -49,26 +50,14 @@ const Header: React.FC = () => {
                 Logout
               </Button>
             </>
-          ) : (
-            <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/">
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Login
-                </Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link to="/registration">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Register
-                </Link>
-              </Button>
-              {/* This button is for demonstration only to view the authenticated header */}
-              <Button size="sm" variant="secondary" onClick={handleMockLogin}>
-                (Test Auth)
-              </Button>
-            </>
-          )}
+          </AuthenticatedTemplate>
+          
+          <UnauthenticatedTemplate>
+            <Button size="sm" onClick={handleLogin}>
+              <LogIn className="mr-2 h-4 w-4" />
+              Login / Register
+            </Button>
+          </UnauthenticatedTemplate>
         </nav>
       </div>
     </header>

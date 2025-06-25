@@ -1,11 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
 import LeftSidebar from '@/components/layout/LeftSidebar';
-import { LogOut } from 'lucide-react';
+
+// MSAL Imports
+import { useMsal } from "@azure/msal-react";
 
 /**
  * DashboardPage: The main landing page for authenticated users.
@@ -13,17 +13,13 @@ import { LogOut } from 'lucide-react';
  */
 const DashboardPage = () => {
   console.log('DashboardPage loaded');
-  const navigate = useNavigate();
-
-  // In a real application, this would also clear auth tokens from state/storage.
-  const handleLogout = () => {
-    console.log('User logging out...');
-    navigate('/'); // Redirect to the login page as per App.tsx routes
-  };
+  const { accounts } = useMsal();
+  
+  const name = accounts[0]?.name;
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
-      {/* The Header component manages its own state for showing authenticated vs. unauthenticated links */}
+      {/* The Header component manages its own state for showing authenticated vs. unauthenticated links */}\
       <Header />
       <div className="flex flex-1">
         <LeftSidebar />
@@ -33,7 +29,7 @@ const DashboardPage = () => {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Welcome Back!</CardTitle>
+              <CardTitle>Welcome Back{name ? `, ${name}!` : '!'}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
@@ -42,10 +38,7 @@ const DashboardPage = () => {
               <p className="text-muted-foreground">
                 You can navigate to different sections of the portal using the menu on the left.
               </p>
-              <Button onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
+              {/* The logout button has been removed from here as it is now globally available in the Header. */}
             </CardContent>
           </Card>
         </main>
